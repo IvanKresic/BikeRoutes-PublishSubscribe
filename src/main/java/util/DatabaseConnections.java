@@ -1,5 +1,6 @@
 package util;
 
+import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -12,6 +13,8 @@ import org.openiot.cupus.artefact.HashtablePublication;
 public class DatabaseConnections {
 	static Connection connection = null;
 	Statement statement;
+	ResultSet tables;
+	DatabaseMetaData dbm;
 	
 	public void ConnectToDatabase()
 	{
@@ -135,5 +138,51 @@ public class DatabaseConnections {
 		String queryPopular = "INSERT INTO popular_routes (path_id, lat_from, lng_from, lat_to, lng_to, counter) VALUES('"+uuid +"', "+ latFrom +
 				", "+lonFrom +", "+latTo +", "+lonTo +", "+counter +")";
 		*/
+	}
+	
+	public void insertIntoPopularRoute(int pathId, double latFrom, double lngFrom, double latTo, double lngTo)
+	{
+		String sqlCallPopularRoutesInsertionProcedure = "call upsert_popular_routes(?, ?, ?, ?, ?)";
+//		String queryGetPopularRouteIfExists = "SELECT counter FROM popular_routes"+
+//				" WHERE lat_from = " + latFrom
+//				+"AND lng_from = " + lngFrom
+//				+"AND lat_to = " + latTo
+//				+"AND lng_to = " + lngTo;
+		
+		try {
+			CallableStatement popularRoutesProcedure = connection.prepareCall(sqlCallPopularRoutesInsertionProcedure);
+			popularRoutesProcedure.setInt(1, pathId);
+			popularRoutesProcedure.setDouble(2, latFrom);
+			popularRoutesProcedure.setDouble(3, lngFrom);
+			popularRoutesProcedure.setDouble(4, latTo);
+			popularRoutesProcedure.setDouble(5, lngTo);
+			popularRoutesProcedure.execute();
+			
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println("Popular routes procedure is not working correctly");
+			e.printStackTrace();			
+		}
+		
+		/**
+		 * TODO
+		 * Ovo je najbolje riješiti pohranjenom procedurom koja će raditi update polja counter
+		 * ako zapis već postoji, ili insert ako zapis ne postoji.
+		 */
+	}	
+	
+	public void getMostPopularRoutes()
+	{
+		try {
+			tables = dbm.getTables(null, null, "popular_routes", null);
+			while(!tables.isAfterLast())
+			{				
+				tables.next();
+			}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 	}
 }

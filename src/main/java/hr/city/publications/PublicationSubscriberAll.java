@@ -3,6 +3,7 @@ package hr.city.publications;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.sql.CallableStatement;
 import java.util.HashMap;
 import java.util.Properties;
 import java.util.UUID;
@@ -140,6 +141,9 @@ public class PublicationSubscriberAll {
 						publisher.publish(hp);
 
 						conn.insertRoute(latFrom, lonFrom, latTo, lonTo, uuid, path_id);
+						conn.insertIntoPopularRoute(path_id, latFrom, lonFrom, latTo, lonTo);
+						
+						
 						// System.out.println(latTo + "," + lonTo);
 
 						String query = "INSERT INTO all_data (uuid, lat, lng, timestamp) VALUES('"
