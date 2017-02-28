@@ -7,14 +7,30 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.ArrayList;
+import java.util.List;
 
-import org.openiot.cupus.artefact.HashtablePublication;
+import com.graphhopper.util.PointList;
+import com.graphhopper.util.shapes.GHPoint;
 
 public class DatabaseConnections {
-	static Connection connection = null;
-	Statement statement;
-	ResultSet tables;
+	static Connection connection;
+	Statement stmt;
 	DatabaseMetaData dbm;
+	ResultSet tables;
+	
+	private void connect()
+	{
+		try {
+			connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/postgres", "postgres", "postgres");
+			stmt = connection.createStatement();
+			dbm = connection.getMetaData();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+	}
 	
 	public void ConnectToDatabase()
 	{
@@ -31,14 +47,8 @@ public class DatabaseConnections {
 		}
 		
 		try {
-			connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/postgres", "postgres",
-					"postgres");
-			
-			Statement stmt = connection.createStatement();
-
-			DatabaseMetaData dbm = connection.getMetaData();
 			// check if "employee" table is there
-			ResultSet tables = dbm.getTables(null, null, "sensors_data", null);
+			tables = dbm.getTables(null, null, "sensors_data", null);
 			if (tables.next()) {
 				// Table exists
 			}
@@ -81,8 +91,8 @@ public class DatabaseConnections {
 		                " lat_from        DOUBLE PRECISION   NOT NULL, " +
 		                " lng_from         DOUBLE PRECISION  NOT NULL, " +
 		                " lat_to        DOUBLE PRECISION   NOT NULL, " +
-		                " lng_to         DOUBLE PRECISION  NOT NULL)";
-					
+		                " lng_to         DOUBLE PRECISION  NOT NULL)";					
+				
 				stmt.executeUpdate(sqlUserRoutes);
 			}
 			
@@ -92,15 +102,32 @@ public class DatabaseConnections {
 			}
 			else {
 				String sqlPopularRoutes = "CREATE TABLE popular_routes " +
-		                "(id SERIAL PRIMARY KEY ," +
-		                " path_id     INT    NOT NULL, " +
+		                "(path_id     INT    NOT NULL, " +
 		                " lat_from        DOUBLE PRECISION   NOT NULL, " +
 		                " lng_from         DOUBLE PRECISION  NOT NULL, " +
 		                " lat_to        DOUBLE PRECISION   NOT NULL, " +
 		                " lng_to         DOUBLE PRECISION  NOT NULL, " +
-		                " counter     INT  NOT NULL)";
+		                " counter     INT  NOT NULL,"+
+		                "stored_at timestamptz NOT NULL DEFAULT now())";
+				
+				String updateProcedure = "CREATE OR REPLACE FUNCTION"
+						+"upsert_popular_routes(path_id int, latFrom DECIMAL, lngFrom DECIMAL, latTo DECIMAL, lngTo DECIMAL)" 
+						+"RETURNS VOID AS $$"
+						+"DECLARE"
+						+"BEGIN"
+						 +"UPDATE popular_routes SET counter = counter + 1, stored_at = now()"
+						 + " WHERE popular_routes.lat_from = latFrom"
+						+" AND popular_routes.lng_from = lngFrom" 
+						+" AND popular_routes.lat_to = latTo"
+						+" AND popular_routes.lng_to = lngTo;"
+						 +"IF NOT FOUND THEN"
+						 +"INSERT INTO popular_routes values (path_id, latFrom, lngFrom, latTo, lngTo, 1, now());"
+						 +"END IF;"
+						+"END;"
+						+"$$ LANGUAGE 'plpgsql';";
 					
 				stmt.executeUpdate(sqlPopularRoutes);
+				stmt.executeUpdate(updateProcedure);
 			}
 		
 		} catch (SQLException e) {
@@ -118,9 +145,7 @@ public class DatabaseConnections {
 	public void InsertIntoDatabase(String query)
 	{
 		try {
-			Statement statement = connection.createStatement();
-			
-			statement.execute(query);
+			stmt.execute(query);
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			System.out.println(e.getMessage());
@@ -134,6 +159,7 @@ public class DatabaseConnections {
 		
 		InsertIntoDatabase(queryUser);
 		
+		
 		/*
 		String queryPopular = "INSERT INTO popular_routes (path_id, lat_from, lng_from, lat_to, lng_to, counter) VALUES('"+uuid +"', "+ latFrom +
 				", "+lonFrom +", "+latTo +", "+lonTo +", "+counter +")";
@@ -142,7 +168,7 @@ public class DatabaseConnections {
 	
 	public void insertIntoPopularRoute(int pathId, double latFrom, double lngFrom, double latTo, double lngTo)
 	{
-		String sqlCallPopularRoutesInsertionProcedure = "call upsert_popular_routes(?, ?, ?, ?, ?)";
+		String sqlCallPopularRoutesInsertionProcedure = "select upsert_popular_routes(?, ?, ?, ?, ?)";
 //		String queryGetPopularRouteIfExists = "SELECT counter FROM popular_routes"+
 //				" WHERE lat_from = " + latFrom
 //				+"AND lng_from = " + lngFrom
@@ -160,29 +186,54 @@ public class DatabaseConnections {
 			
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
-			System.out.println("Popular routes procedure is not working correctly");
-			e.printStackTrace();			
+			e.printStackTrace();
 		}
-		
-		/**
-		 * TODO
-		 * Ovo je najbolje riješiti pohranjenom procedurom koja će raditi update polja counter
-		 * ako zapis već postoji, ili insert ako zapis ne postoji.
-		 */
 	}	
 	
-	public void getMostPopularRoutes()
+	public List<PopularRoutesType> getMostPopularRoutes()
 	{
+		List<PopularRoutesType> popularRoutesList = new ArrayList<PopularRoutesType>();
+		PopularRoutesType popularRoute;
 		try {
 			tables = dbm.getTables(null, null, "popular_routes", null);
 			while(!tables.isAfterLast())
-			{				
+			{					
+				popularRoute = new PopularRoutesType(tables.getDouble(2),
+													 tables.getDouble(3),
+													 tables.getDouble(4),
+													 tables.getDouble(5),
+													 tables.getInt(6));
+				
+				popularRoutesList.add(popularRoute);
 				tables.next();
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
+		return popularRoutesList;		
 	}
+	
+	/**
+	 * Returns the maximum counter from popular_routes. Categorization is based on that number.
+	 */
+	public int getMaximumCounter()
+	{
+		int result = 0;
+		ResultSet resultSet;
+		String query = "SELECT counter FROM popular_routes ORDER BY counter DESC LIMIT 1";
+		try {			
+			stmt.execute(query);
+			resultSet = stmt.getResultSet();
+			if (resultSet.next()) {
+				result = resultSet.getInt(1);
+				}
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+			e.printStackTrace();
+		}
+		return result;
+	}
+	
 }
