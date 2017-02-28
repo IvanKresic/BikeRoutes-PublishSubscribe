@@ -125,10 +125,8 @@ public class PublicationSubscriberAll {
 
 						double latFrom = pl.getLat(0);
 						double lonFrom = pl.getLon(0);
-						double latTo;
-						double lonTo;
-						latTo = pl.getLat(pl.size() - 1);
-						lonTo = pl.getLon(pl.size() - 1);
+						double latTo = pl.getLat(pl.size() - 1);
+						double lonTo = pl.getLon(pl.size() - 1);
 
 						// DataType MyRoutes
 						Coordinate[] coordinatesArray = new Coordinate[2];
