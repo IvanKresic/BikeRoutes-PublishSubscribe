@@ -2,19 +2,23 @@ package util;
 
 import com.graphhopper.util.shapes.GHPoint;
 
-public class PopularRoutesType {
+public class UserRoutesType {
 
+	private String UUID;
 	private GHPoint geoPointFrom = new GHPoint();
 	private GHPoint geoPointTo = new GHPoint();
-	private int category;
 	
-	public PopularRoutesType(double latFrom, double lonFrom, double latTo, double lonTo, int category)
+	public UserRoutesType(String uuid, double latFrom, double lonFrom, double latTo, double lonTo)
 	{
+		this.UUID = uuid;
 		this.geoPointFrom.lat = latFrom;
 		this.geoPointFrom.lon = latTo;
 		this.geoPointTo.lat = latTo;
 		this.geoPointTo.lon = lonTo;
-		this.category = category;
+	}
+
+	public String getUUID() {
+		return UUID;
 	}
 
 	public GHPoint getGeoPointFrom() {
@@ -24,8 +28,4 @@ public class PopularRoutesType {
 	public GHPoint getGeoPointTo() {
 		return geoPointTo;
 	}
-
-	public int getCategory() {
-		return category;
-	}	
 }
