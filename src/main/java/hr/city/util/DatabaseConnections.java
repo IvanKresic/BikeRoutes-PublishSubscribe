@@ -194,18 +194,16 @@ public class DatabaseConnections {
 		PopularRoutesType popularRoute;
 		try {
 			int maximumCounter = getMaximumCounter();
-			tables = dbm.getTables(null, null, "popular_routes", null);
-			tables.next();
-			while (!tables.isAfterLast()) {
+			tables = stmt.executeQuery("SELECT * FROM popular_routes");
+			while (tables.next()) {
 				popularRoute = new PopularRoutesType(
-						tables.getLong(2), 
-						tables.getLong(3), 
-						tables.getLong(4),
-						tables.getLong(5), 
+						tables.getDouble(2), 
+						tables.getDouble(3), 
+						tables.getDouble(4),
+						tables.getDouble(5), 
 						resolveRouteCategory(maximumCounter, tables.getInt(6)));
 
 				popularRoutesList.add(popularRoute);
-				tables.next();
 			}
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -219,18 +217,16 @@ public class DatabaseConnections {
 		List<UserRoutesType> userRoutesList = new ArrayList<UserRoutesType>();
 		UserRoutesType userRoutesType;
 		try {
-			tables = dbm.getTables(null, null, "user_routes", null);
-			tables.next();
-			while(!tables.isAfterLast())
+			tables = stmt.executeQuery("SELECT * FROM user_routes");
+			while(tables.next())
 			{
 				
 					userRoutesType = new UserRoutesType(tables.getString(1), 
-							tables.getLong(3), 
-							tables.getLong(4), 
-							tables.getLong(5), 
-							tables.getLong(6));
-					userRoutesList.add(userRoutesType);	
-					tables.next();
+							tables.getDouble(3), 
+							tables.getDouble(4), 
+							tables.getDouble(5), 
+							tables.getDouble(6));
+					userRoutesList.add(userRoutesType);
 			}		
 			
 		} catch (SQLException e) {
