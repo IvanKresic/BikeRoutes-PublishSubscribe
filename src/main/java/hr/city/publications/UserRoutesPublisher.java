@@ -7,8 +7,8 @@ import org.openiot.cupus.entity.publisher.Publisher;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import util.DatabaseConnections;
-import util.UserRoutesType;
+import hr.city.util.DatabaseConnections;
+import hr.city.util.UserRoutesType;
 
 public class UserRoutesPublisher {
 
@@ -18,9 +18,9 @@ public class UserRoutesPublisher {
 	HashtablePublication userDataPublication;
 
 	// Create and fill userDataPublisher
-	public void setUserDataPublication(String UUID) {
+	public void publishUserDataPublication() {
 		conn.ConnectToDatabase();
-		List<UserRoutesType> userRoutes = conn.getUserRoutes(UUID);
+		List<UserRoutesType> userRoutes = conn.getUserRoutes();
 		for (UserRoutesType userRoutesType : userRoutes) {
 			// DataType MyRoutes
 			Coordinate[] coordinatesArray = new Coordinate[2];
@@ -29,6 +29,7 @@ public class UserRoutesPublisher {
 			coordinatesArray[1] = new Coordinate(userRoutesType.getGeoPointTo().lat,
 					userRoutesType.getGeoPointTo().lon);
 			userDataPublication = new HashtablePublication(-1, System.currentTimeMillis(), coordinatesArray);
+			userDataPublication.setProperty("UUID", userRoutesType.getUUID());
 			userDataPublication.setProperty("DataType", "MyRoutes");
 			publishUserData(userDataPublication);
 		}

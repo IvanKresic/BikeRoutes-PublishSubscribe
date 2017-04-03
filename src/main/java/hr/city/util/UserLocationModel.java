@@ -1,4 +1,4 @@
-package util;
+package hr.city.util;
 import com.google.gson.annotations.SerializedName;
 
 public class UserLocationModel {

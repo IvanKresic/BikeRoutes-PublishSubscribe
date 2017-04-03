@@ -1,4 +1,4 @@
-package hr.city.publications;
+package hr.city.bikeroutes;
 
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -11,10 +11,12 @@ import com.graphhopper.routing.util.BikeFlagEncoder;
 import com.graphhopper.routing.util.EncodingManager;
 import com.graphhopper.routing.util.FlagEncoder;
 
+import hr.city.publications.MostPopularRoutesPublisher;
+import hr.city.publications.UserRoutesPublisher;
 import hr.city.subscriptions.UserDataSubscriber;
-import util.DatabaseConnections;
+import hr.city.util.DatabaseConnections;
 
-public class PublicationSubscriberAll {
+public class BikeRoutesApp {
 
 	private final static String SERVER_IP = "161.53.19.88";
 	private static String osmFile = "D:/Moje/TheProject/OSMosis/bin/croatia.osm";
@@ -63,5 +65,17 @@ public class PublicationSubscriberAll {
 		userDataSubscriber.setUserDataSubscriberAndSubscribe("serverUserSubscriber", hopper);
 		
 		//Arduino subscriber exists, but not used currently
+		
+		/**
+		 * Start publications threads
+		 */
+		MostPopularRoutesPublisher mostPopularRoutesPublisher = new MostPopularRoutesPublisher();
+		UserRoutesPublisher userRoutesPublisher = new UserRoutesPublisher();
+		
+		PublishMostPopularRoutesThread t1 = new PublishMostPopularRoutesThread(mostPopularRoutesPublisher);
+		PublishUserDataThread t2 = new PublishUserDataThread(userRoutesPublisher);
+		
+		t1.start();
+		t2.start();
 	}
 };

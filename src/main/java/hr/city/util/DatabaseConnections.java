@@ -1,4 +1,4 @@
-package util;
+package hr.city.util;
 
 import java.sql.CallableStatement;
 import java.sql.Connection;
@@ -16,7 +16,7 @@ public class DatabaseConnections {
 	DatabaseMetaData dbm;
 	ResultSet tables;
 
-	private void connect() {
+	public void connect() {
 		try {
 			connection = DriverManager.getConnection("jdbc:postgresql://127.0.0.1:5432/postgres", "postgres",
 					"postgres");
@@ -35,6 +35,7 @@ public class DatabaseConnections {
 		 **************************/
 		try {
 			Class.forName("org.postgresql.Driver");
+			connect();
 		} catch (ClassNotFoundException e1) {
 			// TODO Auto-generated catch block
 			System.out.println("Where is your PostgreSQL JDBC Driver? " + "Include in your library path!");
@@ -59,7 +60,7 @@ public class DatabaseConnections {
 			if (tables.next()) {
 				// Table exists
 			} else {
-				String sqlUser = "CREATE TABLE IF NOT EXISTS all_data " + "(id SERIAL PRIMARY KEY ,"
+				String sqlUser = "CREATE TABLE IF NOT EXISTS all_data " + "("
 						+ " uuid           text    NOT NULL, " + " lat        DOUBLE PRECISION   NOT NULL, "
 						+ " lng         DOUBLE PRECISION  NOT NULL, " + " timestamp   BIGINT  NOT NULL)";
 
@@ -70,7 +71,7 @@ public class DatabaseConnections {
 			if (tables.next()) {
 				// Table exists
 			} else {
-				String sqlUserRoutes = "CREATE TABLE IF NOT EXISTS user_routes(id SERIAL PRIMARY KEY ,"
+				String sqlUserRoutes = "CREATE TABLE IF NOT EXISTS user_routes("
 						+ " uuid           text    NOT NULL, " + " path_id     INT    NOT NULL, "
 						+ " lat_from        DOUBLE PRECISION   NOT NULL, "
 						+ " lng_from         DOUBLE PRECISION  NOT NULL, "
@@ -79,12 +80,12 @@ public class DatabaseConnections {
 
 				String sqlUpadteUserRoutesProcedure = "CREATE OR REPLACE FUNCTION upsert_user_routes(" + " uid text, "
 						+ "path_id int, " + "latFrom DECIMAL, " + "lngFrom DECIMAL, " + "latTo DECIMAL, "
-						+ "lngTo DECIMAL)" + "RETURNS VOID AS $$ " + "DECLARE" + "BEGIN"
-						+ "UPDATE user_routes SET counter = counter + 1 " + "WHERE user_routes.uuid = uuid"
-						+ "AND user_routes.lat_from = latFrom " + "AND user_routes.lng_from = lngFrom "
-						+ "AND user_routes.lat_to = latTo " + "AND user_routes.lng_to = lngTo;" + " IF NOT FOUND THEN "
-						+ "INSERT INTO user_routes values (uid, path_id, latFrom, lngFrom, latTo, lngTo, 1);"
-						+ "END IF;" + "END;" + "$$ LANGUAGE 'plpgsql';";
+						+ "lngTo DECIMAL)" + "\nRETURNS VOID AS $$ " + "\nDECLARE " + "\nBEGIN "
+						+ " \nUPDATE user_routes SET counter = counter + 1 " + "\nWHERE user_routes.uuid = uuid"
+						+ "\nAND user_routes.lat_from = latFrom " + "\nAND user_routes.lng_from = lngFrom "
+						+ "\nAND user_routes.lat_to = latTo " + "\nAND user_routes.lng_to = lngTo;" + " \nIF NOT FOUND THEN "
+						+ "\n\tINSERT INTO user_routes values (uid, path_id, latFrom, lngFrom, latTo, lngTo, 1);"
+						+ "\nEND IF;" + "\nEND;" + "\n$$ LANGUAGE 'plpgsql';";
 
 				stmt.executeUpdate(sqlUserRoutes);
 				stmt.executeUpdate(sqlUpadteUserRoutesProcedure);
@@ -95,21 +96,21 @@ public class DatabaseConnections {
 				// Table exists
 			} else {
 				String sqlPopularRoutes = "CREATE TABLE IF NOT EXISTS popular_routes "
-						+ "(path_id     INT    NOT NULL, " + " lat_from        DOUBLE PRECISION   NOT NULL, "
-						+ " lng_from         DOUBLE PRECISION  NOT NULL, "
-						+ " lat_to        DOUBLE PRECISION   NOT NULL, "
-						+ " lng_to         DOUBLE PRECISION  NOT NULL, " + " counter     INT  NOT NULL,"
-						+ "stored_at timestamptz NOT NULL DEFAULT now())";
+						+ "(path_id INT NOT NULL, " + " lat_from DOUBLE PRECISION NOT NULL, "
+						+ " lng_from DOUBLE PRECISION  NOT NULL, "
+						+ " lat_to DOUBLE PRECISION   NOT NULL, "
+						+ " lng_to DOUBLE PRECISION  NOT NULL, " + " counter INT  NOT NULL,"
+						+ " stored_at timestamptz NOT NULL DEFAULT now())";
 
 				String updateProcedure = "CREATE OR REPLACE FUNCTION"
-						+ "upsert_popular_routes(path_id int, latFrom DECIMAL, lngFrom DECIMAL, latTo DECIMAL, lngTo DECIMAL)"
-						+ "RETURNS VOID AS $$" + "DECLARE" + "BEGIN"
-						+ "UPDATE popular_routes SET counter = counter + 1, stored_at = now()"
-						+ " WHERE popular_routes.lat_from = latFrom" + " AND popular_routes.lng_from = lngFrom"
-						+ " AND popular_routes.lat_to = latTo" + " AND popular_routes.lng_to = lngTo;"
-						+ "IF NOT FOUND THEN"
-						+ "INSERT INTO popular_routes values (path_id, latFrom, lngFrom, latTo, lngTo, 1, now());"
-						+ "END IF;" + "END;" + "$$ LANGUAGE 'plpgsql';";
+						+ " upsert_popular_routes(path_id int, latFrom DECIMAL, lngFrom DECIMAL, latTo DECIMAL, lngTo DECIMAL)"
+						+ "\nRETURNS VOID AS $$" + " \nDECLARE " + " \nBEGIN "
+						+ "\nUPDATE popular_routes SET counter = counter + 1, stored_at = now()"
+						+ " \nWHERE popular_routes.lat_from = latFrom" + " \nAND popular_routes.lng_from = lngFrom"
+						+ " \nAND popular_routes.lat_to = latTo" + " \nAND popular_routes.lng_to = lngTo;"
+						+ " \nIF NOT FOUND THEN"
+						+ " \n\tINSERT INTO popular_routes values (path_id, latFrom, lngFrom, latTo, lngTo, 1, now());"
+						+ " \nEND IF;" + " \nEND;" + "\n$$ LANGUAGE 'plpgsql';";
 
 				stmt.executeUpdate(sqlPopularRoutes);
 				stmt.executeUpdate(updateProcedure);
@@ -154,7 +155,7 @@ public class DatabaseConnections {
 			popularRoutesProcedure.setDouble(3, lngFrom);
 			popularRoutesProcedure.setDouble(4, latTo);
 			popularRoutesProcedure.setDouble(5, lngTo);
-			popularRoutesProcedure.execute();
+			insertIntoDatabase(popularRoutesProcedure.toString());
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -166,14 +167,14 @@ public class DatabaseConnections {
 			double lngTo) {
 		String sqlCallUserRoutesInsertionProcedure = "select upsert_user_routes(?, ?, ?, ?, ?, ?);";
 		try {
-			CallableStatement popularRoutesProcedure = connection.prepareCall(sqlCallUserRoutesInsertionProcedure);
-			popularRoutesProcedure.setString(1, uuid);
-			popularRoutesProcedure.setInt(2, pathId);
-			popularRoutesProcedure.setDouble(3, latFrom);
-			popularRoutesProcedure.setDouble(4, lngFrom);
-			popularRoutesProcedure.setDouble(5, latTo);
-			popularRoutesProcedure.setDouble(6, lngTo);
-			popularRoutesProcedure.execute();
+			CallableStatement userRoutesProcedure = connection.prepareCall(sqlCallUserRoutesInsertionProcedure);
+			userRoutesProcedure.setString(1, uuid);
+			userRoutesProcedure.setInt(2, pathId);
+			userRoutesProcedure.setDouble(3, latFrom);
+			userRoutesProcedure.setDouble(4, lngFrom);
+			userRoutesProcedure.setDouble(5, latTo);
+			userRoutesProcedure.setDouble(6, lngTo);
+			insertIntoDatabase(userRoutesProcedure.toString());
 
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
@@ -194,12 +195,13 @@ public class DatabaseConnections {
 		try {
 			int maximumCounter = getMaximumCounter();
 			tables = dbm.getTables(null, null, "popular_routes", null);
+			tables.next();
 			while (!tables.isAfterLast()) {
 				popularRoute = new PopularRoutesType(
-						tables.getDouble(2), 
-						tables.getDouble(3), 
-						tables.getDouble(4),
-						tables.getDouble(5), 
+						tables.getLong(2), 
+						tables.getLong(3), 
+						tables.getLong(4),
+						tables.getLong(5), 
 						resolveRouteCategory(maximumCounter, tables.getInt(6)));
 
 				popularRoutesList.add(popularRoute);
@@ -212,23 +214,23 @@ public class DatabaseConnections {
 		return popularRoutesList;
 	}
 	
-	public List<UserRoutesType> getUserRoutes(String UUID)
+	public List<UserRoutesType> getUserRoutes()
 	{
 		List<UserRoutesType> userRoutesList = new ArrayList<UserRoutesType>();
 		UserRoutesType userRoutesType;
 		try {
 			tables = dbm.getTables(null, null, "user_routes", null);
+			tables.next();
 			while(!tables.isAfterLast())
 			{
-				if(tables.getString(1) == UUID)
-				{
+				
 					userRoutesType = new UserRoutesType(tables.getString(1), 
 							tables.getLong(3), 
 							tables.getLong(4), 
 							tables.getLong(5), 
 							tables.getLong(6));
-					userRoutesList.add(userRoutesType);
-				}				
+					userRoutesList.add(userRoutesType);	
+					tables.next();
 			}		
 			
 		} catch (SQLException e) {

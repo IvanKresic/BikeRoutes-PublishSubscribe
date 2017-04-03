@@ -14,7 +14,7 @@ import org.openiot.cupus.entity.subscriber.Subscriber;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import util.DatabaseConnections;
+import hr.city.util.DatabaseConnections;
 
 public class ArduinoDataSubscriber {
 	private final static String SERVER_IP = "161.53.19.88";

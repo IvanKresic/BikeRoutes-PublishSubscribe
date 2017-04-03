@@ -24,5 +24,6 @@
 	</classpathentry>
 	<classpathentry kind="lib" path="CUPUS-1.0-jar-with-dependencies.jar"/>
 	<classpathentry kind="lib" path="D:/Moje/Programi/DiplProj/RASUS_Server_v0.2/gson-2.2.4.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.junit.JUNIT_CONTAINER/4"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

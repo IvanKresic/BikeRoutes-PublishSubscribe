@@ -1,4 +1,4 @@
-package util;
+package hr.city.util;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;

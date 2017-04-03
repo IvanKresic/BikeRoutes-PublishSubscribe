@@ -19,7 +19,7 @@ import com.graphhopper.util.EdgeIteratorState;
 import com.graphhopper.util.PointList;
 import com.vividsolutions.jts.geom.Coordinate;
 
-import util.DatabaseConnections;
+import hr.city.util.DatabaseConnections;
 
 public class UserDataSubscriber {
 
@@ -67,15 +67,12 @@ public class UserDataSubscriber {
 					}
 				}
 			}
-
 			public void notify(UUID arg0, String arg1, Subscription arg2, boolean arg3) {
 				// TODO Auto-generated method stub
-
 			}
 		});
 
 		subscriber.connect();
-
 		// define subscriptions for speed data
 
 		TripletSubscription ts1 = new TripletSubscription(-1, System.currentTimeMillis());

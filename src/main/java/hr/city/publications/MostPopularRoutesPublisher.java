@@ -5,8 +5,8 @@ import org.openiot.cupus.entity.publisher.Publisher;
 
 import com.vividsolutions.jts.geom.Coordinate;
 
-import util.DatabaseConnections;
-import util.PopularRoutesType;
+import hr.city.util.DatabaseConnections;
+import hr.city.util.PopularRoutesType;
 
 public class MostPopularRoutesPublisher {
 	private final static String SERVER_IP = "161.53.19.88";

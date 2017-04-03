@@ -1,4 +1,4 @@
-package hr.city.publications;
+package hr.city.bikeroutes;
 
 import java.io.BufferedReader;
 import java.io.FileInputStream;

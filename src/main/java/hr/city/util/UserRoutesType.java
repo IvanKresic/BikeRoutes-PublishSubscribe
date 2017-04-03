@@ -1,4 +1,4 @@
-package util;
+package hr.city.util;
 
 import com.graphhopper.util.shapes.GHPoint;
 
