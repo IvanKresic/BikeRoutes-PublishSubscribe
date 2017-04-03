@@ -19,7 +19,7 @@ public class UserRoutesPublisher {
 
 	// Create and fill userDataPublisher
 	public void publishUserDataPublication() {
-		conn.ConnectToDatabase();
+		conn.connect();
 		List<UserRoutesType> userRoutes = conn.getUserRoutes();
 		for (UserRoutesType userRoutesType : userRoutes) {
 			// DataType MyRoutes

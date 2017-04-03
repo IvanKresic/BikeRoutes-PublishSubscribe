@@ -16,7 +16,7 @@ public class MostPopularRoutesPublisher {
 
 	// Create and fill userDataPublisher
 	public void publishMostPopularRoutes() {
-		conn.ConnectToDatabase();
+		conn.connect();
 		for (PopularRoutesType popularRoutesType : conn.getMostPopularRoutes()) {
 			Coordinate[] coordinatesArray = new Coordinate[2];
 			coordinatesArray[0] = new Coordinate(popularRoutesType.getGeoPointFrom().lat,

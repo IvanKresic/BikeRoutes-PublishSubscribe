@@ -52,6 +52,7 @@ public class BikeRoutesApp {
 			e.printStackTrace();
 		}
 
+		conn.ConnectToDatabase();
 		//String SERVER_IP = pubProps.getProperty("server_ip");
 
 		if (SERVER_IP == null) {
